@@ -1,29 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>EPS-TOPIK UBT Mock Test</title>
+    <title>UBT Mock Test</title>
     <style>
-        .container { display: flex; height: 100vh; }
-        .left-side { width: 60%; border-right: 2px solid #ccc; padding: 20px; }
+        .container { display: flex; height: 100vh; font-family: sans-serif; }
+        .left-side { width: 60%; border-right: 2px solid #ccc; padding: 20px; text-align: center; }
         .right-side { width: 40%; padding: 20px; }
-        img { max-width: 100%; }
-        .btn { display: block; width: 100%; padding: 10px; margin: 10px 0; cursor: pointer; }
+        img { max-width: 100%; height: 300px; object-fit: contain; border: 1px solid #ddd; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; cursor: pointer; text-align: left; font-size: 16px; border-radius: 5px; border: 1px solid #3498db; background: white; }
+        .btn:hover { background: #f0f7ff; }
+        .next-btn { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; float: right; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="left-side" id="question-area">
-            <h2>Reading Question 1</h2>
-            <img src="q1~2.png" alt="Question Image">
-            <p>다음 그림을 보고 맞는 단어를 고르십시오.</p>
-        </div>
-        <div class="right-side">
-            <button class="btn">1. 가방</button>
-            <button class="btn">2. 구두</button>
-            <button class="btn">3. 모자</button>
-            <button class="btn">4. 안경</button>
-        </div>
+
+<div class="container">
+    <div class="left-side">
+        <h2 id="q-number">Question 1</h2>
+        <img id="main-img" src="" alt="Question Image">
+        <p id="q-text">Loading question...</p>
     </div>
+    
+    <div class="right-side">
+        <div id="options-container">
+            </div>
+        <br>
+        <button class="next-btn" onclick="nextQuestion()">Next > </button>
+    </div>
+</div>
+
+<script>
+    // မေးခွန်းများစာရင်း (ဒီမှာ ပုံ Link နဲ့ စာသားတွေကို ပြင်ရုံပါပဲ)
+    const questions = [
+        {
+            image: "q1.jpg", // GitHub မှာတင်ထားတဲ့ ပုံနာမည်
+            text: "다음 그림을 보고 맞는 단어를 고르십시오.",
+            options: ["1. 가방", "2. 구두", "3. 모자", "4. 안경"],
+            answer: 0
+        },
+        {
+            image: "q2.jpg",
+            text: "이것은 무엇입ိုက်까?",
+            options: ["1. 책상", "2. 의자", "3. 침대", "4. 탁자"],
+            answer: 1
+        }
+    ];
+
+    let currentQ = 0;
+
+    function showQuestion() {
+        const q = questions[currentQ];
+        document.getElementById("q-number").innerText = "Question " + (currentQ + 1);
+        document.getElementById("main-img").src = q.image;
+        document.getElementById("q-text").innerText = q.text;
+        
+        const optContainer = document.getElementById("options-container");
+        optContainer.innerHTML = "";
+        q.options.forEach((opt, index) => {
+            optContainer.innerHTML += `<button class="btn" onclick="checkAnswer(${index})">${opt}</button>`;
+        });
+    }
+
+    function nextQuestion() {
+        if (currentQ < questions.length - 1) {
+            currentQ++;
+            showQuestion();
+        } else {
+            alert("စာမေးပွဲ ပြီးဆုံးပါပြီ။");
+        }
+    }
+
+    // စတင်ဖွင့်လိုက်တာနဲ့ ပထမမေးခွန်း ပြပါ
+    showQuestion();
+</script>
+
 </body>
 </html>
-
