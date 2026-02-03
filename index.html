@@ -1,41 +1,103 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GXOKER UBT Mobile</title>
+    <style>
+        :root { --primary: #00b4db; --dark: #12192c; --white: #ffffff; }
+        body { font-family: sans-serif; margin: 0; background: var(--dark); color: #333; overflow-x: hidden; }
+        
+        /* Mobile Responsive Login Page */
+        #login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        .login-card { width: 100%; max-width: 400px; background: #161b22; border-radius: 15px; overflow: hidden; border: 1px solid #30363d; }
+        .login-header { background: linear-gradient(90deg, #00d2ff, #3a7bd5); padding: 15px; color: white; text-align: center; font-size: 1.1rem; }
+        .login-body { padding: 20px; color: white; }
+        .input-group { margin-bottom: 12px; }
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; font-size: 16px; }
+        .photo-box { width: 100px; height: 130px; border: 2px solid var(--primary); margin: 10px auto; border-radius: 8px; overflow: hidden; }
+        .start-btn { width: 100%; padding: 18px; border: none; background: linear-gradient(90deg, #00f260, #0575e6); color: white; font-weight: bold; font-size: 18px; cursor: pointer; }
+
+        /* Exam Page Mobile Style */
+        #exam-page { display: none; background: #f0f2f5; height: 100vh; flex-direction: column; }
+        .top-bar { background: #1a233a; color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+        .main-container { flex: 1; padding: 10px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .question-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        .q-title { color: var(--primary); font-weight: bold; margin-bottom: 10px; }
+        .q-image { width: 100%; height: auto; border-radius: 5px; margin: 10px 0; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; }
+        .opt-btn { background: white; border: 1px solid #ddd; padding: 12px; border-radius: 8px; display: flex; align-items: center; font-size: 15px; min-height: 50px; }
+        .opt-num { width: 28px; height: 28px; border: 1px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-right: 12px; flex-shrink: 0; }
+        
+        /* Bottom Navigation for Mobile */
+        .bottom-nav { background: #1a233a; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .nav-btn { background: #2c3e50; color: white; border: none; padding: 10px 5px; border-radius: 5px; font-size: 0.75rem; font-weight: bold; }
+        .finish-btn { background: #ff0055; }
+
+        /* Tablet/Desktop adjustments */
+        @media (min-width: 768px) {
+            .login-card { max-width: 450px; }
+            .nav-btn { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-page">
+    <div class="login-card">
+        <div class="login-header">GXOKER UBT Mobile Exam</div>
+        <div class="login-body">
+            <div class="input-group"><label>NAME</label><input type="text" value="Yan Nyein Aung" readonly></div>
+            <div class="input-group"><label>JOB SECTOR</label><select><option>Manufacturing</option></select></div>
+            <div class="photo-box"><img src="https://via.placeholder.com/100x130" style="width:100%"></div>
+        </div>
+        <button class="start-btn" onclick="startExam()">CONFIRM & START</button>
+    </div>
+</div>
+
+<div id="exam-page">
+    <div class="top-bar"><span id="job-title">MFG</span><span id="timer">REM: 20:00</span></div>
+    <div class="main-container">
+        <div class="question-card">
+            <div class="q-title" id="q-number">[Q 1]</div>
+            <p id="q-text" style="margin: 5px 0; font-size: 15px;"></p>
+            <img id="q-img" src="" class="q-image" style="display:none;">
+            <audio id="q-audio" controls style="display:none; width:100%;"></audio>
+        </div>
+        <div class="options-list" id="options"></div>
+    </div>
+    <div class="bottom-nav">
+        <button class="nav-btn" onclick="prevQ()">PREV</button>
+        <button class="nav-btn">LIST</button>
+        <button class="nav-btn" onclick="nextQ()">NEXT</button>
+        <button class="nav-btn finish-btn" onclick="finishExam()">FINISH</button>
+    </div>
+</div>
+
 <script>
     const questions = [
-        {
-            type: "reading_img",
-            text: "다음 그림을 보고 맞는 단어나 문장을 고르십시오.",
-            img: "q1.jpg", 
-            audio: "",
-            options: ["비늘봉투에 물건을 가득 담고 있습니다.", "종이 박스를 테이프로 포장하고 있습니다.", "환경 보호를 위해 장바구니를 사용합니다.", "일회용 컵에 담긴 커피를 마시고 있습니다."],
-            ans: 2
-        }
-        // နောက်ထပ် မေးခွန်းများ ဒီမှာ ဆက်ထည့်ပါ
+        { text: "다음 그림을 보고 맞는 단어를 고르십시오.", img: "q1.jpg", audio: "", options: ["가방", "구두", "모자", "안경"], ans: 0 },
+        { text: "잘 듣고 맞는 것을 고르십시오.", img: "", audio: "audio1.mp3", options: ["၁ နာရီ", "၂ နာရီ", "၃ နာရီ", "၄ နာရီ"], ans: 2 }
     ];
 
     let currentIdx = 0;
-    let selectedAnswers = new Array(questions.length).fill(null); // ကျောင်းသား ရွေးထားတာတွေ သိမ်းဖို့
-    let timeLeft = 20 * 60; // မိနစ် ၂၀ (စက္ကန့်ဖြင့်)
-    let timerInterval;
+    let selectedAnswers = new Array(questions.length).fill(null);
+    let timeLeft = 20 * 60;
 
     function startExam() {
         document.getElementById('login-page').style.display = 'none';
         document.getElementById('exam-page').style.display = 'flex';
         loadQuestion();
-        startTimer(); // Timer စတင်ခြင်း
+        setInterval(updateTimer, 1000);
     }
 
-    // ၁။ Auto-Submit Timer စနစ်
-    function startTimer() {
-        timerInterval = setInterval(() => {
-            let mins = Math.floor(timeLeft / 60);
-            let secs = timeLeft % 60;
-            document.getElementById('timer').innerText = `REM:${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                autoSubmit(); // အချိန်ပြည့်ရင် အလိုအလျောက် တင်မည်
-            }
-            timeLeft--;
-        }, 1000);
+    function updateTimer() {
+        if(timeLeft <= 0) return finishExam();
+        let mins = Math.floor(timeLeft / 60);
+        let secs = timeLeft % 60;
+        document.getElementById('timer').innerText = `REM:${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        timeLeft--;
     }
 
     function loadQuestion() {
@@ -44,57 +106,34 @@
         document.getElementById('q-text').innerText = q.text;
         
         const imgTag = document.getElementById('q-img');
-        imgTag.src = q.img;
-        imgTag.style.display = q.img ? 'block' : 'none';
+        imgTag.src = q.img; imgTag.style.display = q.img ? 'block' : 'none';
 
         const audioTag = document.getElementById('q-audio');
-        audioTag.src = q.audio;
-        audioTag.style.display = q.audio ? 'block' : 'none';
+        audioTag.src = q.audio; audioTag.style.display = q.audio ? 'block' : 'none';
 
         const optDiv = document.getElementById('options');
         optDiv.innerHTML = "";
-        
         q.options.forEach((opt, i) => {
-            // ၂။ Selection Highlight စနစ် (ရွေးထားတဲ့ အဖြေကို အရောင်ပြောင်းထားခြင်း)
             const isSelected = selectedAnswers[currentIdx] === i;
-            const highlightStyle = isSelected ? 'style="background: #e1f5fe; border: 2px solid #00b4db;"' : '';
-            const numCircleStyle = isSelected ? 'style="background: #00b4db; color: white; border-color: #00b4db;"' : '';
-
+            const bg = isSelected ? '#e1f5fe' : 'white';
+            const border = isSelected ? '2px solid #00b4db' : '1px solid #ddd';
             optDiv.innerHTML += `
-                <div class="opt-btn" onclick="selectOpt(${i})" ${highlightStyle}>
-                    <div class="opt-num" ${numCircleStyle}>${i+1}</div>
+                <div class="opt-btn" onclick="selectOpt(${i})" style="background:${bg}; border:${border};">
+                    <div class="opt-num" style="${isSelected ? 'background:#00b4db; color:white;' : ''}">${i+1}</div>
                     <div>${opt}</div>
                 </div>`;
         });
     }
 
-    function selectOpt(idx) {
-        selectedAnswers[currentIdx] = idx; // ရွေးချယ်မှုကို မှတ်သားထားခြင်း
-        loadQuestion(); // UI ကို Refresh လုပ်ပြီး အရောင်ပြောင်းစေခြင်း
-    }
-
+    function selectOpt(idx) { selectedAnswers[currentIdx] = idx; loadQuestion(); }
     function nextQ() { if(currentIdx < questions.length - 1) { currentIdx++; loadQuestion(); } }
     function prevQ() { if(currentIdx > 0) { currentIdx--; loadQuestion(); } }
 
-    function autoSubmit() {
-        alert("အချိန်ပြည့်သွားပါပြီ။ အဖြေလွှာကို အလိုအလျောက် ပေးပို့လိုက်ပါပြီ။");
-        finishExam();
-    }
-
     function finishExam() {
-        // အမှတ်တွက်ချက်ခြင်းနှင့် Result Page သို့သွားခြင်း
         let finalScore = 0;
-        selectedAnswers.forEach((ans, i) => {
-            if(ans === questions[i].ans) finalScore += 5;
-        });
-        
-        document.body.innerHTML = `
-            <div style="background:#12192c; color:white; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
-                <h1>Exam Completed</h1>
-                <div style="font-size:100px;">🎉</div>
-                <h2 style="color:#00b4db;">Your Score: ${finalScore} / ${questions.length * 5}</h2>
-                <button onclick="location.reload()" style="background:#00b4db; color:white; border:none; padding:15px 30px; border-radius:10px; cursor:pointer; margin-top:20px;">BACK TO HOME</button>
-            </div>
-        `;
+        selectedAnswers.forEach((ans, i) => { if(ans === questions[i].ans) finalScore += 5; });
+        document.body.innerHTML = `<div style="color:white; text-align:center; padding-top:100px;"><h1>Finished!</h1><h2>Score: ${finalScore}</h2><button onclick="location.reload()" style="padding:10px 20px;">Restart</button></div>`;
     }
 </script>
+</body>
+</html>
