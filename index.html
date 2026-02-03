@@ -1,78 +1,100 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>UBT Mock Test</title>
-    <style>
-        .container { display: flex; height: 100vh; font-family: sans-serif; }
-        .left-side { width: 60%; border-right: 2px solid #ccc; padding: 20px; text-align: center; }
-        .right-side { width: 40%; padding: 20px; }
-        img { max-width: 100%; height: 300px; object-fit: contain; border: 1px solid #ddd; }
-        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; cursor: pointer; text-align: left; font-size: 16px; border-radius: 5px; border: 1px solid #3498db; background: white; }
-        .btn:hover { background: #f0f7ff; }
-        .next-btn { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; float: right; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <div class="left-side">
-        <h2 id="q-number">Question 1</h2>
-        <img id="main-img" src="" alt="Question Image">
-        <p id="q-text">Loading question...</p>
-    </div>
-    
-    <div class="right-side">
-        <div id="options-container">
-            </div>
-        <br>
-        <button class="next-btn" onclick="nextQuestion()">Next > </button>
-    </div>
-</div>
-
 <script>
-    // မေးခွန်းများစာရင်း (ဒီမှာ ပုံ Link နဲ့ စာသားတွေကို ပြင်ရုံပါပဲ)
     const questions = [
         {
-            image: "q1.jpg", // GitHub မှာတင်ထားတဲ့ ပုံနာမည်
-            text: "다음 그림을 보고 맞는 단어를 고르십시오.",
-            options: ["1. 가방", "2. 구두", "3. 모자", "4. 안경"],
-            answer: 0
-        },
-        {
-            image: "q2.jpg",
-            text: "이것은 무엇입ိုက်까?",
-            options: ["1. 책상", "2. 의자", "3. 침대", "4. 탁자"],
-            answer: 1
+            type: "reading_img",
+            text: "다음 그림을 보고 맞는 단어나 문장을 고르십시오.",
+            img: "q1.jpg", 
+            audio: "",
+            options: ["비늘봉투에 물건을 가득 담고 있습니다.", "종이 박스를 테이프로 포장하고 있습니다.", "환경 보호를 위해 장바구니를 사용합니다.", "일회용 컵에 담긴 커피를 마시고 있습니다."],
+            ans: 2
         }
+        // နောက်ထပ် မေးခွန်းများ ဒီမှာ ဆက်ထည့်ပါ
     ];
 
-    let currentQ = 0;
+    let currentIdx = 0;
+    let selectedAnswers = new Array(questions.length).fill(null); // ကျောင်းသား ရွေးထားတာတွေ သိမ်းဖို့
+    let timeLeft = 20 * 60; // မိနစ် ၂၀ (စက္ကန့်ဖြင့်)
+    let timerInterval;
 
-    function showQuestion() {
-        const q = questions[currentQ];
-        document.getElementById("q-number").innerText = "Question " + (currentQ + 1);
-        document.getElementById("main-img").src = q.image;
-        document.getElementById("q-text").innerText = q.text;
+    function startExam() {
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('exam-page').style.display = 'flex';
+        loadQuestion();
+        startTimer(); // Timer စတင်ခြင်း
+    }
+
+    // ၁။ Auto-Submit Timer စနစ်
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            let mins = Math.floor(timeLeft / 60);
+            let secs = timeLeft % 60;
+            document.getElementById('timer').innerText = `REM:${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                autoSubmit(); // အချိန်ပြည့်ရင် အလိုအလျောက် တင်မည်
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    function loadQuestion() {
+        const q = questions[currentIdx];
+        document.getElementById('q-number').innerText = `[Question ${currentIdx + 1}]`;
+        document.getElementById('q-text').innerText = q.text;
         
-        const optContainer = document.getElementById("options-container");
-        optContainer.innerHTML = "";
-        q.options.forEach((opt, index) => {
-            optContainer.innerHTML += `<button class="btn" onclick="checkAnswer(${index})">${opt}</button>`;
+        const imgTag = document.getElementById('q-img');
+        imgTag.src = q.img;
+        imgTag.style.display = q.img ? 'block' : 'none';
+
+        const audioTag = document.getElementById('q-audio');
+        audioTag.src = q.audio;
+        audioTag.style.display = q.audio ? 'block' : 'none';
+
+        const optDiv = document.getElementById('options');
+        optDiv.innerHTML = "";
+        
+        q.options.forEach((opt, i) => {
+            // ၂။ Selection Highlight စနစ် (ရွေးထားတဲ့ အဖြေကို အရောင်ပြောင်းထားခြင်း)
+            const isSelected = selectedAnswers[currentIdx] === i;
+            const highlightStyle = isSelected ? 'style="background: #e1f5fe; border: 2px solid #00b4db;"' : '';
+            const numCircleStyle = isSelected ? 'style="background: #00b4db; color: white; border-color: #00b4db;"' : '';
+
+            optDiv.innerHTML += `
+                <div class="opt-btn" onclick="selectOpt(${i})" ${highlightStyle}>
+                    <div class="opt-num" ${numCircleStyle}>${i+1}</div>
+                    <div>${opt}</div>
+                </div>`;
         });
     }
 
-    function nextQuestion() {
-        if (currentQ < questions.length - 1) {
-            currentQ++;
-            showQuestion();
-        } else {
-            alert("စာမေးပွဲ ပြီးဆုံးပါပြီ။");
-        }
+    function selectOpt(idx) {
+        selectedAnswers[currentIdx] = idx; // ရွေးချယ်မှုကို မှတ်သားထားခြင်း
+        loadQuestion(); // UI ကို Refresh လုပ်ပြီး အရောင်ပြောင်းစေခြင်း
     }
 
-    // စတင်ဖွင့်လိုက်တာနဲ့ ပထမမေးခွန်း ပြပါ
-    showQuestion();
-</script>
+    function nextQ() { if(currentIdx < questions.length - 1) { currentIdx++; loadQuestion(); } }
+    function prevQ() { if(currentIdx > 0) { currentIdx--; loadQuestion(); } }
 
-</body>
-</html>
+    function autoSubmit() {
+        alert("အချိန်ပြည့်သွားပါပြီ။ အဖြေလွှာကို အလိုအလျောက် ပေးပို့လိုက်ပါပြီ။");
+        finishExam();
+    }
+
+    function finishExam() {
+        // အမှတ်တွက်ချက်ခြင်းနှင့် Result Page သို့သွားခြင်း
+        let finalScore = 0;
+        selectedAnswers.forEach((ans, i) => {
+            if(ans === questions[i].ans) finalScore += 5;
+        });
+        
+        document.body.innerHTML = `
+            <div style="background:#12192c; color:white; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+                <h1>Exam Completed</h1>
+                <div style="font-size:100px;">🎉</div>
+                <h2 style="color:#00b4db;">Your Score: ${finalScore} / ${questions.length * 5}</h2>
+                <button onclick="location.reload()" style="background:#00b4db; color:white; border:none; padding:15px 30px; border-radius:10px; cursor:pointer; margin-top:20px;">BACK TO HOME</button>
+            </div>
+        `;
+    }
+</script>
