@@ -1,57 +1,156 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Korea Eps E9 Channel! UBT Exam</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    
+    <style>
+        :root { --primary: #00b4db; --dark: #12192c; --white: #ffffff; }
+        body { font-family: sans-serif; margin: 0; background: var(--dark); color: #333; overflow-x: hidden; }
+        
+        /* Login Page */
+        #login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
+        .login-card { width: 100%; max-width: 400px; background: #161b22; border-radius: 15px; overflow: hidden; border: 1px solid #30363d; }
+        .login-header { background: linear-gradient(90deg, #00d2ff, #3a7bd5); padding: 15px; color: white; text-align: center; font-size: 1.1rem; }
+        .login-body { padding: 20px; color: white; }
+        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; font-size: 16px; margin-bottom: 15px; }
+        
+        .photo-preview { width: 100px; height: 130px; border: 2px dashed var(--primary); margin: 0 auto 10px; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #0d1117; }
+        .photo-preview img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .upload-btn { background: #238636; color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; display: inline-block; margin-bottom: 15px; font-size: 0.8rem; }
+
+        .start-btn { width: 100%; padding: 18px; border: none; background: linear-gradient(90deg, #00f260, #0575e6); color: white; font-weight: bold; font-size: 18px; cursor: pointer; }
+
+        /* Exam Page */
+        #exam-page { display: none; background: #f0f2f5; height: 100vh; flex-direction: column; }
+        .top-info-bar { background: #1a233a; color: white; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .user-thumb { width: 40px; height: 50px; border-radius: 3px; object-fit: cover; border: 1px solid white; }
+        .timer-box { background: #ff0055; padding: 5px 10px; border-radius: 5px; font-weight: bold; margin-left: auto; }
+
+        .main-container { flex: 1; padding: 10px; overflow-y: auto; }
+        .question-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; border-top: 5px solid var(--primary); }
+        
+        .audio-section { background: #e3f2fd; padding: 10px; border-radius: 8px; margin: 10px 0; display: none; }
+        audio { width: 100%; height: 35px; }
+
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .opt-btn { background: white; border: 1px solid #ddd; padding: 12px; border-radius: 8px; display: flex; align-items: center; }
+        .opt-num { width: 28px; height: 28px; border: 1px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-right: 12px; flex-shrink: 0; }
+        
+        /* Palette */
+        .palette-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 15px; padding: 10px; background: #fff; border-radius: 10px; }
+        .palette-btn { padding: 8px; border: 1px solid #ccc; background: white; border-radius: 4px; text-align: center; font-size: 12px; cursor: pointer; }
+        .palette-btn.answered { background: #2ecc71; color: white; border-color: #27ae60; }
+        .palette-btn.current { border: 2px solid var(--primary); font-weight: bold; }
+
+        .bottom-nav { background: #1a233a; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .nav-btn { background: #2c3e50; color: white; border: none; padding: 12px 5px; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="login-page">
+    <div class="login-card">
+        <div class="login-header">UBT EXAM LOGIN</div>
+        <div class="login-body" style="text-align: center;">
+            <div class="photo-preview">
+                <span id="placeholder-text" style="color:#58a6ff; font-size: 10px;">PHOTO</span>
+                <img id="user-photo-preview" src="">
+            </div>
+            <label for="photo-input" class="upload-btn">UPLOAD PHOTO</label>
+            <input type="file" id="photo-input" accept="image/*" onchange="previewImage(this)" style="display:none;">
+
+            <input type="text" id="user-name" placeholder="Full Name">
+            <select id="user-job">
+                <option>Manufacturing (제조업)</option>
+                <option>Agriculture (농업)</option>
+                <option>Construction (건설업)</option>
+                <option>Fishery (어업)</option>
+            </select>
+        </div>
+        <button class="start-btn" onclick="startExam()">CONFIRM & START</button>
+    </div>
+</div>
+
+<div id="exam-page">
+    <div class="top-info-bar">
+        <img id="exam-user-img" src="" class="user-thumb">
+        <div style="font-size: 0.7rem;">
+            <div id="display-name" style="font-weight:bold;">Name</div>
+            <div id="display-job">Sector</div>
+        </div>
+        <div class="timer-box" id="timer-display">20:00</div>
+    </div>
+    
+    <div class="main-container">
+        <div class="question-card">
+            <div style="color:var(--primary); font-weight:bold; margin-bottom:5px;" id="q-number">[Question 1]</div>
+            <p id="q-text" style="font-size: 16px; margin: 5px 0;"></p>
+            <div id="audio-container" class="audio-section">
+                <audio id="q-audio" controls></audio>
+            </div>
+            <img id="q-img" src="" style="width:100%; border-radius:5px; margin-top:10px; display:none;">
+        </div>
+        <div class="options-list" id="options"></div>
+        <div class="palette-container" id="question-palette"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-btn" onclick="prevQ()">PREV</button>
+        <button class="nav-btn">LIST</button>
+        <button class="nav-btn" onclick="nextQ()">NEXT</button>
+        <button class="nav-btn" style="background:#ff0055;" onclick="finishExam()">FINISH</button>
+    </div>
+</div>
+
 <script>
     let currentIdx = 0;
     let timeLeft = 20 * 60; 
     let selectedAnswers = [];
     let userData = { photo: "" };
-    let questions = []; // မေးခွန်းများကို အလွတ်ထားထားပါ
+    let questions = [];
+    let timerInterval;
 
-    // ၁။ Google Sheets မှ မေးခွန်းများ ဆွဲယူမည့် Function
+    // ၁။ Google Sheets URL ထည့်ရန် (ဒီနေရာမှာ လူကြီးမင်း Link အစားထိုးပါ)
+    const sheetURL = "https://script.google.com/macros/s/AKfycbycLVJ64q_BiSIVvsugR4pFn0tk8tkaS-agzwICHSbMOK0dNtw5-ZgLe-H5lMaU9Gax8w/exec"; 
+
     async function fetchQuestions() {
-        // အောက်က Link နေရာမှာ လူကြီးမင်း Deploy လုပ်လို့ရလာတဲ့ Link ကို အစားထိုးပါ
-        const sheetURL = "https://script.google.com/macros/s/AKfycbycLVJ64q_BiSIVvsugR4pFn0tk8tkaS-agzwICHSbMOK0dNtw5-ZgLe-H5lMaU9Gax8w/exec"; 
-        
         try {
             const response = await fetch(sheetURL);
             questions = await response.json();
             selectedAnswers = new Array(questions.length).fill(null);
-            console.log("Questions Loaded Successfully!");
         } catch (error) {
-            console.error("Error fetching questions:", error);
-            alert("မေးခွန်းများ ဆွဲယူ၍ မရပါ။ Link ကို ပြန်စစ်ပါ။");
+            alert("မေးခွန်းဆွဲယူ၍မရပါ။ အင်တာနက်ပြန်စစ်ပါ။");
         }
     }
 
     function previewImage(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = e => {
                 document.getElementById('user-photo-preview').src = e.target.result;
                 document.getElementById('user-photo-preview').style.display = 'block';
                 document.getElementById('placeholder-text').style.display = 'none';
                 userData.photo = e.target.result;
-            }
+            };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    // ၂။ Start Exam နှိပ်လိုက်ရင် မေးခွန်းတွေကို အရင်ဆွဲမယ်
     async function startExam() {
-        const nameInput = document.getElementById('user-name').value;
-        if(!nameInput || !userData.photo) {
-            alert("နာမည်နဲ့ ဓာတ်ပုံ အရင်ထည့်ပေးပါဗျာ။");
-            return;
-        }
+        const name = document.getElementById('user-name').value;
+        if(!name || !userData.photo) return alert("နာမည်နှင့် ဓာတ်ပုံထည့်ပါ။");
 
-        // မေးခွန်းများ စတင်ဆွဲယူခြင်း
         document.querySelector('.start-btn').innerText = "LOADING...";
         await fetchQuestions();
-
         if(questions.length === 0) return;
 
-        document.getElementById('display-name').innerText = nameInput;
+        document.getElementById('display-name').innerText = name;
         document.getElementById('display-job').innerText = document.getElementById('user-job').value;
         document.getElementById('exam-user-img').src = userData.photo;
-
         document.getElementById('login-page').style.display = 'none';
         document.getElementById('exam-page').style.display = 'flex';
         
@@ -60,16 +159,11 @@
     }
 
     function runTimer() {
-        const timerDisplay = document.getElementById('timer-display');
-        const countdown = setInterval(() => {
+        timerInterval = setInterval(() => {
             let mins = Math.floor(timeLeft / 60);
             let secs = timeLeft % 60;
-            timerDisplay.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            if (timeLeft <= 0) {
-                clearInterval(countdown);
-                finishExam();
-            }
-            timeLeft--;
+            document.getElementById('timer-display').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if (timeLeft-- <= 0) finishExam();
         }, 1000);
     }
 
@@ -79,33 +173,69 @@
         document.getElementById('q-text').innerText = q.text;
         
         const imgTag = document.getElementById('q-img');
-        if(q.img) { imgTag.src = q.img; imgTag.style.display = 'block'; }
-        else { imgTag.style.display = 'none'; }
+        imgTag.src = q.img || "";
+        imgTag.style.display = q.img ? 'block' : 'none';
 
         const audioSec = document.getElementById('audio-container');
         const audioTag = document.getElementById('q-audio');
-        if(q.audio) { 
-            audioTag.src = q.audio; 
-            audioSec.style.display = 'block'; 
-        } else { 
-            audioSec.style.display = 'none';
-            audioTag.pause(); 
-        }
+        if(q.audio) { audioTag.src = q.audio; audioSec.style.display = 'block'; }
+        else { audioSec.style.display = 'none'; audioTag.pause(); }
 
         const optDiv = document.getElementById('options');
         optDiv.innerHTML = "";
         q.options.forEach((opt, i) => {
             const isSelected = selectedAnswers[currentIdx] === i;
             optDiv.innerHTML += `
-                <div class="opt-btn" onclick="selectOpt(${i})" style="${isSelected ? 'background:#e1f5fe; border:2px solid #00b4db;' : ''}">
+                <div class="opt-btn" onclick="selectOpt(${i})" style="${isSelected ? 'border:2px solid #00b4db; background:#e1f5fe;' : ''}">
                     <div class="opt-num" style="${isSelected ? 'background:#00b4db; color:white;' : ''}">${i+1}</div>
                     ${opt}
                 </div>`;
+        });
+        updatePalette();
+    }
+
+    function updatePalette() {
+        const palette = document.getElementById('question-palette');
+        palette.innerHTML = "";
+        questions.forEach((_, i) => {
+            const btn = document.createElement('div');
+            btn.className = `palette-btn ${selectedAnswers[i] !== null ? 'answered' : ''} ${i === currentIdx ? 'current' : ''}`;
+            btn.innerText = i + 1;
+            btn.onclick = () => { currentIdx = i; loadQuestion(); };
+            palette.appendChild(btn);
         });
     }
 
     function selectOpt(idx) { selectedAnswers[currentIdx] = idx; loadQuestion(); }
     function nextQ() { if(currentIdx < questions.length - 1) { currentIdx++; loadQuestion(); } }
     function prevQ() { if(currentIdx > 0) { currentIdx--; loadQuestion(); } }
-    function finishExam() { alert("ဖြေဆိုမှု ပြီးဆုံးပါပြီ။"); location.reload(); }
+
+    function finishExam() {
+        clearInterval(timerInterval);
+        let score = 0;
+        let summary = [];
+        questions.forEach((q, i) => {
+            let correct = (selectedAnswers[i] === q.ans);
+            if(correct) score += 5;
+            summary.push([i+1, q.options[q.ans], selectedAnswers[i] !== null ? q.options[selectedAnswers[i]] : "-", correct ? "မှန်" : "မှား"]);
+        });
+
+        document.body.innerHTML = `
+            <div style="padding:20px; text-align:center; font-family:sans-serif;">
+                <h2>Result: ${score} / ${questions.length*5}</h2>
+                <button onclick="downloadPDF('${score}', ${JSON.stringify(summary).replace(/"/g, '&quot;')})" style="padding:15px; background:#28a745; color:white; border:none; border-radius:10px; width:100%; margin-bottom:10px;">DOWNLOAD PDF</button>
+                <button onclick="location.reload()" style="padding:15px; background:#00b4db; color:white; border:none; border-radius:10px; width:100%;">RESTART</button>
+            </div>`;
+    }
+
+    window.downloadPDF = function(score, data) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text("UBT Exam Result", 14, 20);
+        doc.text(`Name: ${document.getElementById('display-name').innerText} | Score: ${score}`, 14, 30);
+        doc.autoTable({ startY: 40, head: [['No.', 'Correct Ans', 'Your Ans', 'Status']], body: data });
+        doc.save("Result.pdf");
+    };
 </script>
+</body>
+</html>
