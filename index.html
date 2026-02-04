@@ -115,7 +115,51 @@
         });
     }
 
-    function finish() {
+    function finish(let base64Image = ""; // ပုံကို သိမ်းထားရန် Variable
+
+// ပုံရွေးလိုက်တဲ့အခါ base64 အဖြစ်ပြောင်းသိမ်းခြင်း
+function previewFile() {
+    const preview = document.getElementById('preview-img');
+    const file = document.getElementById('file-input').files[0];
+    const placeholder = document.getElementById('upload-placeholder');
+    const reader = new FileReader();
+    
+    reader.onloadend = () => { 
+        base64Image = reader.result; // ပုံဒေတာကို သိမ်းလိုက်ခြင်း
+        preview.src = reader.result; 
+        preview.style.display = "block"; 
+        placeholder.style.display = "none"; 
+    }
+    if (file) reader.readAsDataURL(file);
+}
+
+async function finish() {
+    if(!confirm("Finish Exam?")) return;
+    
+    let score = 0;
+    questions.forEach((q, i) => { if(answers[i] === q.ans) score += 5; });
+
+    const name = document.getElementById('user-name').value;
+    const sector = document.getElementById('job-sector').value;
+
+    // Google Sheet ထံ ဒေတာပို့ခြင်း
+    try {
+        await fetch(apiURL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ 
+                name: name, 
+                sector: sector,
+                score: score, 
+                image: base64Image, // ပုံဒေတာ
+                details: "Reading Exam Result" 
+            })
+        });
+        alert("Result and Photo saved successfully!");
+        location.reload();
+    } catch(e) { console.error(e); }
+}
+) {
         if(!confirm("စာမေးပွဲ အဆုံးသတ်မှာ သေချာပါသလား?")) return;
         
         let score = 0;
