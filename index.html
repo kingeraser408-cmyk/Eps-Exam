@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Korea Eps E9 Channel! UBT Exam</title>
+    <title>Created by PPA! UBT Exam</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     
@@ -54,7 +54,7 @@
 
 <div id="login-page">
     <div class="login-card">
-        <div class="login-header">UBT EXAM LOGIN</div>
+        <div class="login-header">UBT Special EXAM LOGIN</div>
         <div class="login-body" style="text-align: center;">
             <div class="photo-preview">
                 <span id="placeholder-text" style="color:#58a6ff; font-size: 10px;">PHOTO</span>
@@ -233,7 +233,7 @@
         const doc = new jsPDF();
         doc.text("UBT Exam Result", 14, 20);
         doc.text(`Name: ${document.getElementById('display-name').innerText} | Score: ${score}`, 14, 30);
-        doc.autoTable({ startY: 40, head: [['No.', 'Correct Ans', 'Your Ans', 'Status']], body: data });
+        doc.autoTable({ startY: 40, head: [['Yes.', 'Correct Ans', 'Your Ans', 'Status']], body: data });
         doc.save("Result.pdf");
     };
 </script>
