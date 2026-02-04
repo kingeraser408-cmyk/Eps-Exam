@@ -233,7 +233,9 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         doc.text("UBT Exam Result", 14, 20);
-        doc.text(`Name: ${document.getElementById('display-name').innerText} | Score: ${score}`, 14, 30);
+        doc.text(`Name: ${document.getElementById('display-name').innerText} | Score: ${score}`, 14, 30); const blob = doc.output('bloburl');
+        window.open(blob, '_blank');
+    };
         doc.autoTable({ startY: 40, head: [['No.', 'Correct Ans', 'Your Ans', 'Status']], body: data });
         doc.save("Result.pdf");
     };
