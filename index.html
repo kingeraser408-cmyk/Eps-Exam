@@ -178,7 +178,7 @@
 
         const audioSec = document.getElementById('audio-container');
         const audioTag = document.getElementById('q-audio');
-        if(q.audio) { audioTag.src = q.audio;audioTag.load();  // audioSec.style.display = 'block'; }
+        if(q.audio) { audioTag.src = q.audio;audioTag.load(); audioSec.style.display = 'block'; }
         else { audioSec.style.display = 'none'; audioTag.pause(); }
 
         const optDiv = document.getElementById('options');
