@@ -24,7 +24,7 @@
         .q-card { width: 100%; max-width: 600px; background: white; padding: 20px; border-radius: 10px; margin-top: 20px; border-top: 5px solid var(--primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         
         .audio-btn { background: #ffc107; border: none; padding: 12px 20px; border-radius: 25px; margin: 10px 0; cursor: pointer; font-weight: bold; width: 100%; }
-        .audio-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .audio-btn:disabled { background: #ccc; cursor: not-allowed; color: #666; }
         
         .option { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 10px; margin: 10px 0; display: flex; align-items: center; cursor: pointer; transition: 0.2s; width: 100%; max-width: 600px; box-sizing: border-box; }
         .option.active { border: 2px solid var(--primary); background: #e1f5fe; }
@@ -146,30 +146,59 @@
         const q = questions[current];
         document.getElementById('q-no').innerText = `Question ${current + 1}`;
         document.getElementById('q-text').innerText = q.text || "";
+        
+        // Column C Audio Logic (Main Question Audio)
         const aBox = document.getElementById('q-audio-box');
         if (q.audio) {
-            let count = audioLogs[current] || 0;
-            aBox.innerHTML = `<button class="audio-btn" onclick="playQuestionAudio('${q.audio}', ${current})" ${count >= 2 ? 'disabled' : ''}>
+            let qAudioId = `q_${current}_main`;
+            let count = audioLogs[qAudioId] || 0;
+            aBox.innerHTML = `<button class="audio-btn" onclick="playAudio('${q.audio}', '${qAudioId}')" ${count >= 2 ? 'disabled' : ''}>
                 🔊 ${count >= 2 ? 'LIMIT REACHED' : 'LISTEN (' + count + '/2)'}
             </button>`;
         } else { aBox.innerHTML = ""; }
+
         const img = document.getElementById('q-img');
         if(q.img) { img.src = q.img; img.style.display = "block"; } else { img.style.display = "none"; }
+        
+        // Column D, E, F, G Audio Logic (Options Audio)
         const optDiv = document.getElementById('options-container');
         optDiv.innerHTML = "";
         q.options.forEach((opt, i) => {
-            let content = opt.toString().match(/\.(jpg|jpeg|png)$/i) ? `<img src="${opt}" style="height:70px; border-radius:5px;">` : 
-                          opt.toString().match(/\.mp3$/i) ? `<button class="audio-btn" style="margin:0; width:auto;" onclick="event.stopPropagation(); new Audio('${opt}').play()">🔊 Audio</button>` : 
-                          `<span>${opt}</span>`;
-            optDiv.innerHTML += `<div class="option ${answers[current]===i?'active':''}" onclick="setAns(${i})"><div class="opt-num">${i+1}</div><div>${content}</div></div>`;
+            let content = "";
+            if (opt.toString().match(/\.(jpg|jpeg|png)$/i)) {
+                content = `<img src="${opt}" style="height:70px; border-radius:5px;">`;
+            } else if (opt.toString().match(/\.mp3$/i)) {
+                let optAudioId = `q_${current}_opt_${i}`;
+                let count = audioLogs[optAudioId] || 0;
+                content = `<button class="audio-btn" style="margin:0; width:auto; font-size:12px; padding:8px 15px;" 
+                            onclick="event.stopPropagation(); playAudio('${opt}', '${optAudioId}')" 
+                            ${count >= 2 ? 'disabled' : ''}>
+                            🔊 ${count >= 2 ? 'LIMIT' : 'Audio (' + count + '/2)'}
+                           </button>`;
+            } else {
+                content = `<span>${opt}</span>`;
+            }
+            
+            optDiv.innerHTML += `
+                <div class="option ${answers[current]===i?'active':''}" onclick="setAns(${i})">
+                    <div class="opt-num">${i+1}</div>
+                    <div>${content}</div>
+                </div>`;
         });
         updatePalette();
     }
 
-    function playQuestionAudio(url, id) {
+    // Combined Play Audio Function for both Question and Options
+    function playAudio(url, id) {
         if (!audioLogs[id]) audioLogs[id] = 0;
-        if (audioLogs[id] < 2) { new Audio(url).play(); audioLogs[id]++; renderQ(); }
+        if (audioLogs[id] < 2) {
+            let audio = new Audio(url);
+            audio.play();
+            audioLogs[id]++;
+            renderQ(); // Refresh UI to update counts and disable buttons
+        }
     }
+
     function setAns(i) { answers[current] = i; renderQ(); }
     function nextQ() { if(current < questions.length-1) { current++; renderQ(); } }
     function prevQ() { if(current > 0) { current--; renderQ(); } }
@@ -226,11 +255,13 @@
         document.getElementById('final-stats').innerText = `Correct: ${score/2.5} / ${questions.length}`;
         document.getElementById('review-list').innerHTML = reviewHTML;
 
+        // အောင်မှတ်ကို ၈၀ ပြည့်မှ Pass လို့သတ်မှတ်ခြင်း (စိတ်ကြိုက်ပြင်နိုင်ပါသည်)
         if(score >= 95) {
             badge.innerText = "PASS"; badge.style.color = "var(--success)";
             document.getElementById('download-btn').style.display = "block";
         } else {
             badge.innerText = "FAIL"; badge.style.color = "var(--danger)";
+            document.getElementById('download-btn').style.display = "none";
         }
 
         const data = { name: document.getElementById('user-name').value, sector: document.getElementById('user-job').value, score: score };
@@ -244,16 +275,13 @@
         const score = document.getElementById('final-score').innerText;
         const job = document.getElementById('user-job').value;
 
-        // Background & Border
         doc.setFillColor(245, 245, 240); doc.rect(0, 0, 297, 210, 'F');
         doc.setDrawColor(212, 175, 55); doc.setLineWidth(5); doc.rect(10, 10, 277, 190);
         doc.setLineWidth(1); doc.rect(13, 13, 271, 184);
 
-        // Header
         doc.setTextColor(20, 30, 60); doc.setFontSize(40); doc.setFont("times", "bold");
         doc.text("CERTIFICATE OF COMPLETION", 148, 50, { align: "center" });
 
-        // Body
         doc.setFontSize(18); doc.setFont("helvetica", "normal");
         doc.text("This is to certify that", 148, 75, { align: "center" });
         
@@ -266,7 +294,6 @@
         doc.setFontSize(22); doc.setFont("times", "bold");
         doc.text(`FINAL SCORE: ${score}`, 148, 135, { align: "center" });
 
-        // Footer
         doc.setFontSize(12); doc.setFont("helvetica", "italic");
         doc.text(`Date: ${new Date().toLocaleDateString()}`, 50, 170);
         doc.text("Authorized by: PPA Exam Center", 240, 170, { align: "right" });
@@ -285,4 +312,4 @@
     }
 </script>
 </body>
-    </html>
+</html>
