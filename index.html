@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UBT Fully Randomized System</title>
+    <title>UBT Category Randomized System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --primary: #00b4db; --dark: #12192c; --white: #ffffff; --danger: #ff0055; --success: #2ecc71; --gold: #d4af37; }
@@ -66,6 +66,7 @@
     </div>
     <div class="q-card">
         <div id="q-no" style="color:var(--primary); font-weight:bold;">Question 1</div>
+        <div id="q-category" style="font-size: 12px; color: gray; margin-bottom: 5px;"></div>
         <div id="q-text"></div>
         <div id="q-audio-box"></div>
         <img id="q-img" style="width:100%; display:none; border-radius:8px; margin-top:10px;">
@@ -122,10 +123,19 @@
             const res = await fetch(apiURL);
             let rawData = await res.json();
             
-            // ၁။ မေးခွန်းများကို Shuffle လုပ်ခြင်း
-            questions = rawData.sort(() => Math.random() - 0.5);
+            // ၁။ 읽기 (Reading) နှင့် 듣기 (Listening) ခွဲခြားခြင်း
+            // မေးခွန်းတွင် audio ပါလျှင် Listening ဟု သတ်မှတ်သည် (Google Sheet column ပေါ်မူတည်၍ ပြင်နိုင်သည်)
+            let readingQs = rawData.filter(q => !q.audio);
+            let listeningQs = rawData.filter(q => q.audio);
+
+            // ၂။ ကဏ္ဍတစ်ခုချင်းစီကို Shuffle လုပ်ခြင်း
+            readingQs.sort(() => Math.random() - 0.5);
+            listeningQs.sort(() => Math.random() - 0.5);
+
+            // ၃။ Reading အရင်၊ Listening နောက်မှ ပေါင်းစည်းခြင်း
+            questions = [...readingQs, ...listeningQs];
             
-            // ၂။ အဖြေများကို Shuffle လုပ်ခြင်း (မေးခွန်းတစ်ခုချင်းစီအတွက်)
+            // ၄။ အဖြေများကို Shuffle လုပ်ခြင်း (မေးခွန်းတစ်ခုချင်းစီအတွက်)
             questions.forEach(q => {
                 let optionsWithMeta = q.options.map((text, index) => ({ text, isCorrect: index === q.ans }));
                 optionsWithMeta.sort(() => Math.random() - 0.5);
@@ -144,6 +154,7 @@
     function renderQ() {
         const q = questions[current];
         document.getElementById('q-no').innerText = `Question ${current + 1}`;
+        document.getElementById('q-category').innerText = q.audio ? "[듣기 - Listening]" : "[읽기 - Reading]";
         document.getElementById('q-text').innerHTML = q.text || "";
         
         const aBox = document.getElementById('q-audio-box');
@@ -308,4 +319,4 @@
     }
 </script>
 </body>
-            </html>
+    </html>
