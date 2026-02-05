@@ -3,239 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Created by PPA! UBT Exam</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    
+    <title>UBT & Color Blind Test System</title>
     <style>
         :root { --primary: #00b4db; --dark: #12192c; --white: #ffffff; }
-        body { font-family: sans-serif; margin: 0; background: var(--dark); color: #333; overflow-x: hidden; }
+        body { font-family: sans-serif; margin: 0; background: var(--dark); color: #333; }
         
-        /* Login Page */
-        #login-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; box-sizing: border-box; }
-        .login-card { width: 100%; max-width: 400px; background: #161b22; border-radius: 15px; overflow: hidden; border: 1px solid #30363d; }
-        .login-header { background: linear-gradient(90deg, #00d2ff, #3a7bd5); padding: 15px; color: white; text-align: center; font-size: 1.1rem; }
-        .login-body { padding: 20px; color: white; }
-        input, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; font-size: 16px; margin-bottom: 15px; }
-        
-        .photo-preview { width: 100px; height: 130px; border: 2px dashed var(--primary); margin: 0 auto 10px; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #0d1117; }
-        .photo-preview img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .upload-btn { background: #238636; color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; display: inline-block; margin-bottom: 15px; font-size: 0.8rem; }
+        /* Pages Control */
+        .page { display: none; min-height: 100vh; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .active-page { display: flex; }
 
-        .start-btn { width: 100%; padding: 18px; border: none; background: linear-gradient(90deg, #00f260, #0575e6); color: white; font-weight: bold; font-size: 18px; cursor: pointer; }
+        /* Login & Card Style */
+        .card { width: 100%; max-width: 400px; background: #161b22; border-radius: 15px; border: 1px solid #30363d; color: white; padding-bottom: 20px; overflow: hidden; }
+        .header { background: linear-gradient(90deg, #00d2ff, #3a7bd5); padding: 15px; text-align: center; font-weight: bold; }
+        input, select { width: 85%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; }
+        .btn { width: 85%; padding: 15px; border: none; background: linear-gradient(90deg, #00f260, #0575e6); color: white; font-weight: bold; border-radius: 8px; cursor: pointer; }
 
-        /* Exam Page */
-        #exam-page { display: none; background: #f0f2f5; height: 100vh; flex-direction: column; }
-        .top-info-bar { background: #1a233a; color: white; padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .user-thumb { width: 40px; height: 50px; border-radius: 3px; object-fit: cover; border: 1px solid white; }
-        .timer-box { background: #ff0055; padding: 5px 10px; border-radius: 5px; font-weight: bold; margin-left: auto; }
+        /* Exam UI */
+        #exam-page { background: #f0f2f5; justify-content: flex-start; }
+        .top-bar { width: 100%; background: #1a233a; color: white; padding: 10px; display: flex; justify-content: space-between; position: sticky; top: 0; }
+        .q-card { width: 100%; max-width: 500px; background: white; padding: 20px; border-radius: 10px; margin-top: 20px; border-top: 5px solid var(--primary); }
+        .audio-btn { background: #ffc107; border: none; padding: 10px 20px; border-radius: 20px; margin: 10px 0; cursor: pointer; font-weight: bold; }
+        .option { background: white; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin: 10px 0; display: flex; align-items: center; cursor: pointer; width: 100%; max-width: 500px; }
+        .option.active { border: 2px solid var(--primary); background: #e1f5fe; }
+        .opt-num { width: 25px; height: 25px; border: 1px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-right: 15px; }
 
-        .main-container { flex: 1; padding: 10px; overflow-y: auto; }
-        .question-card { background: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px; border-top: 5px solid var(--primary); }
-        
-        .audio-section { background: #e3f2fd; padding: 10px; border-radius: 8px; margin: 10px 0; display: none; }
-        audio { width: 100%; height: 35px; }
-
-        .options-list { display: flex; flex-direction: column; gap: 10px; }
-        .opt-btn { background: white; border: 1px solid #ddd; padding: 12px; border-radius: 8px; display: flex; align-items: center; }
-        .opt-num { width: 28px; height: 28px; border: 1px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-right: 12px; flex-shrink: 0; }
-        
-        /* Palette */
-        .palette-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 15px; padding: 10px; background: #fff; border-radius: 10px; }
-        .palette-btn { padding: 8px; border: 1px solid #ccc; background: white; border-radius: 4px; text-align: center; font-size: 12px; cursor: pointer; }
-        .palette-btn.answered { background: #2ecc71; color: white; border-color: #27ae60; }
-        .palette-btn.current { border: 2px solid var(--primary); font-weight: bold; }
-
-        .bottom-nav { background: #1a233a; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-        .nav-btn { background: #2c3e50; color: white; border: none; padding: 12px 5px; border-radius: 5px; font-weight: bold; }
+        /* Color Blind UI */
+        .cb-img { width: 250px; height: 250px; border-radius: 50%; border: 5px solid white; margin: 20px 0; }
     </style>
 </head>
 <body>
 
-<div id="login-page">
-    <div class="login-card">
-        <div class="login-header">UBT Special EXAM LOGIN</div>
-        <div class="login-body" style="text-align: center;">
-            <div class="photo-preview">
-                <span id="placeholder-text" style="color:#58a6ff; font-size: 10px;">PHOTO</span>
-                <img id="user-photo-preview" src="">
-            </div>
-            <label for="photo-input" class="upload-btn">UPLOAD PHOTO</label>
-            <input type="file" id="photo-input" accept="image/*" onchange="previewImage(this)" style="display:none;">
-
+<div id="login-page" class="page active-page">
+    <div class="card">
+        <div class="header">UBT EXAM LOGIN</div>
+        <center>
             <input type="text" id="user-name" placeholder="Full Name">
             <select id="user-job">
                 <option>Manufacturing (제조업)</option>
                 <option>Agriculture (농업)</option>
                 <option>Construction (건설업)</option>
-                <option>Fishery (어업)</option>
             </select>
-        </div>
-        <button class="start-btn" onclick="startExam()">CONFIRM & START</button>
+            <button class="btn" onclick="startExam()">START EXAM</button>
+            <p style="font-size: 12px; color: #58a6ff; cursor: pointer;" onclick="viewResults()">VIEW OLD RESULTS</p>
+        </center>
     </div>
 </div>
 
-<div id="exam-page">
-    <div class="top-info-bar">
-        <img id="exam-user-img" src="" class="user-thumb">
-        <div style="font-size: 0.7rem;">
-            <div id="display-name" style="font-weight:bold;">Name</div>
-            <div id="display-job">Sector</div>
-        </div>
-        <div class="timer-box" id="timer-display">20:00</div>
+<div id="exam-page" class="page">
+    <div class="top-bar">
+        <div id="display-name">Name</div>
+        <div id="timer" style="background:#ff0055; padding:2px 10px; border-radius:5px;">20:00</div>
     </div>
-    
-    <div class="main-container">
-        <div class="question-card">
-            <div style="color:var(--primary); font-weight:bold; margin-bottom:5px;" id="q-number">[Question 1]</div>
-            <p id="q-text" style="font-size: 16px; margin: 5px 0;"></p>
-            <div id="audio-container" class="audio-section">
-                <audio id="q-audio" controls></audio>
-            </div>
-            <img id="q-img" src="" style="width:100%; border-radius:5px; margin-top:10px; display:none;">
-        </div>
-        <div class="options-list" id="options"></div>
-        <div class="palette-container" id="question-palette"></div>
+    <div class="q-card">
+        <div id="q-no" style="color:var(--primary); font-weight:bold;">Question 1</div>
+        <div id="q-text" style="font-size: 18px; margin: 10px 0;"></div>
+        <div id="q-audio-box"></div>
+        <img id="q-img" src="" style="width:100%; display:none; border-radius:8px;">
     </div>
+    <div id="options-container" style="width:100%; max-width:500px;"></div>
+    <div style="display:flex; gap:10px; margin-top:20px; width:100%; max-width:500px;">
+        <button class="btn" style="background:#2c3e50;" onclick="prevQ()">PREV</button>
+        <button class="btn" style="background:#2c3e50;" onclick="nextQ()">NEXT</button>
+    </div>
+    <button class="btn" style="background:#ff0055; margin-top:10px;" onclick="goToColorBlind()">FINISH PART 1</button>
+</div>
 
-    <div class="bottom-nav">
-        <button class="nav-btn" onclick="prevQ()">PREV</button>
-        <button class="nav-btn">LIST</button>
-        <button class="nav-btn" onclick="nextQ()">NEXT</button>
-        <button class="nav-btn" style="background:#ff0055;" onclick="finishExam()">FINISH</button>
+<div id="cb-page" class="page">
+    <div class="card" style="text-align: center;">
+        <div class="header">COLOR BLIND TEST</div>
+        <div id="cb-q-no" style="margin-top:10px;">Plate 1 of 5</div>
+        <img id="cb-display-img" class="cb-img" src="cb1.jpg">
+        <input type="number" id="cb-input" placeholder="ပုံထဲကဂဏန်းကိုရိုက်ပါ">
+        <button class="btn" onclick="nextCB()">NEXT PLATE</button>
     </div>
 </div>
 
 <script>
-    let currentIdx = 0;
-    let timeLeft = 20 * 60; 
-    let selectedAnswers = [];
-    let userData = { photo: "" };
+    const apiURL = "https://script.google.com/macros/s/AKfycbycLVJ64q_BiSIVvsugR4pFn0tk8tkaS-agzwICHSbMOK0dNtw5-ZgLe-H5lMaU9Gax8w/exec"; // <--- ဒီနေရာမှာ URL ထည့်ပါ
     let questions = [];
-    let timerInterval;
-
-    // ၁။ Google Sheets URL ထည့်ရန် (ဒီနေရာမှာ လူကြီးမင်း Link အစားထိုးပါ)
-    const sheetURL = "https://script.google.com/macros/s/AKfycbycLVJ64q_BiSIVvsugR4pFn0tk8tkaS-agzwICHSbMOK0dNtw5-ZgLe-H5lMaU9Gax8w/exec"; 
-
-    async function fetchQuestions() {
-        try {
-            const response = await fetch(sheetURL);
-            questions = await response.json();
-            selectedAnswers = new Array(questions.length).fill(null);
-        } catch (error) {
-            alert("မေးခွန်းဆွဲယူ၍မရပါ။ အင်တာနက်ပြန်စစ်ပါ။");
-        }
-    }
-
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                document.getElementById('user-photo-preview').src = e.target.result;
-                document.getElementById('user-photo-preview').style.display = 'block';
-                document.getElementById('placeholder-text').style.display = 'none';
-                userData.photo = e.target.result;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
+    let current = 0;
+    let answers = [];
+    let timeLeft = 20 * 60;
+    let cbCurrent = 1;
 
     async function startExam() {
         const name = document.getElementById('user-name').value;
-        if(!name || !userData.photo) return alert("နာမည်နှင့် ဓာတ်ပုံထည့်ပါ။");
-
-        document.querySelector('.start-btn').innerText = "LOADING...";
-        await fetchQuestions();
-        if(questions.length === 0) return;
-
-        document.getElementById('display-name').innerText = name;
-        document.getElementById('display-job').innerText = document.getElementById('user-job').value;
-        document.getElementById('exam-user-img').src = userData.photo;
-        document.getElementById('login-page').style.display = 'none';
-        document.getElementById('exam-page').style.display = 'flex';
+        if(!name) return alert("နာမည်ရိုက်ထည့်ပါ");
         
-        loadQuestion();
-        runTimer();
+        document.getElementById('login-page').classList.remove('active-page');
+        document.getElementById('exam-page').classList.add('active-page');
+        document.getElementById('display-name').innerText = name;
+
+        try {
+            const res = await fetch(apiURL);
+            questions = await res.json();
+            answers = new Array(questions.length).fill(null);
+            renderQ();
+            startTimer();
+        } catch(e) { alert("Data Error!"); }
     }
 
-    function runTimer() {
-        timerInterval = setInterval(() => {
-            let mins = Math.floor(timeLeft / 60);
-            let secs = timeLeft % 60;
-            document.getElementById('timer-display').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-            if (timeLeft-- <= 0) finishExam();
+    function renderQ() {
+        const q = questions[current];
+        document.getElementById('q-no').innerText = `Question ${current + 1}`;
+        document.getElementById('q-text').innerText = q.text || "";
+        
+        const aBox = document.getElementById('q-audio-box');
+        aBox.innerHTML = q.audio ? `<button class="audio-btn" onclick="play('${q.audio}')">🔊 Listen Question</button>` : "";
+
+        const img = document.getElementById('q-img');
+        if(q.img) { img.src = q.img; img.style.display = "block"; } else { img.style.display = "none"; }
+
+        const optDiv = document.getElementById('options-container');
+        optDiv.innerHTML = "";
+        q.options.forEach((opt, i) => {
+            let content = "";
+            if(opt.toString().match(/\.(jpg|jpeg|png)$/i)) content = `<img src="${opt}" style="height:70px;">`;
+            else if(opt.toString().match(/\.mp3$/i)) content = `<button class="audio-btn" onclick="event.stopPropagation(); play('${opt}')">🔊 Audio</button>`;
+            else content = `<span>${opt}</span>`;
+
+            optDiv.innerHTML += `
+                <div class="option ${answers[current]===i?'active':''}" onclick="setAns(${i})">
+                    <div class="opt-num">${i+1}</div>
+                    <div>${content}</div>
+                </div>`;
+        });
+    }
+
+    function setAns(i) { answers[current] = i; renderQ(); }
+    function nextQ() { if(current < questions.length-1) { current++; renderQ(); } }
+    function prevQ() { if(current > 0) { current--; renderQ(); } }
+    function play(file) { new Audio(file).play(); }
+
+    function startTimer() {
+        const timerObj = setInterval(() => {
+            if(timeLeft <= 0) { clearInterval(timerObj); goToColorBlind(); }
+            timeLeft--;
+            let m = Math.floor(timeLeft/60), s = timeLeft%60;
+            document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
         }, 1000);
     }
 
-    function loadQuestion() {
-        const q = questions[currentIdx];
-        document.getElementById('q-number').innerText = `[Question ${currentIdx + 1}]`;
-        document.getElementById('q-text').innerText = q.text;
-        
-        const imgTag = document.getElementById('q-img');
-        imgTag.src = q.img || "";
-        imgTag.style.display = q.img ? 'block' : 'none';
-
-        const audioSec = document.getElementById('audio-container');
-        const audioTag = document.getElementById('q-audio');
-        if(q.audio) { audioTag.src = q.audio; audioSec.style.display = 'block'; }
-        else { audioSec.style.display = 'none'; audioTag.pause(); }
-
-        const optDiv = document.getElementById('options');
-        optDiv.innerHTML = "";
-        q.options.forEach((opt, i) => {
-            const isSelected = selectedAnswers[currentIdx] === i;
-            optDiv.innerHTML += `
-                <div class="opt-btn" onclick="selectOpt(${i})" style="${isSelected ? 'border:2px solid #00b4db; background:#e1f5fe;' : ''}">
-                    <div class="opt-num" style="${isSelected ? 'background:#00b4db; color:white;' : ''}">${i+1}</div>
-                    ${opt}
-                </div>`;
-        });
-        updatePalette();
+    function goToColorBlind() {
+        document.getElementById('exam-page').classList.remove('active-page');
+        document.getElementById('cb-page').classList.add('active-page');
     }
 
-    function updatePalette() {
-        const palette = document.getElementById('question-palette');
-        palette.innerHTML = "";
-        questions.forEach((_, i) => {
-            const btn = document.createElement('div');
-            btn.className = `palette-btn ${selectedAnswers[i] !== null ? 'answered' : ''} ${i === currentIdx ? 'current' : ''}`;
-            btn.innerText = i + 1;
-            btn.onclick = () => { currentIdx = i; loadQuestion(); };
-            palette.appendChild(btn);
-        });
+    function nextCB() {
+        if(cbCurrent < 5) {
+            cbCurrent++;
+            document.getElementById('cb-q-no').innerText = `Plate ${cbCurrent} of 5`;
+            document.getElementById('cb-display-img').src = `cb${cbCurrent}.jpg`;
+            document.getElementById('cb-input').value = "";
+        } else {
+            submitResults();
+        }
     }
 
-    function selectOpt(idx) { selectedAnswers[currentIdx] = idx; loadQuestion(); }
-    function nextQ() { if(currentIdx < questions.length - 1) { currentIdx++; loadQuestion(); } }
-    function prevQ() { if(currentIdx > 0) { currentIdx--; loadQuestion(); } }
-
-    function finishExam() {
-        clearInterval(timerInterval);
+    async function submitResults() {
         let score = 0;
-        let summary = [];
-        questions.forEach((q, i) => {
-            let correct = (selectedAnswers[i] === q.ans);
-            if(correct) score += 5;
-            summary.push([i+1, q.options[q.ans], selectedAnswers[i] !== null ? q.options[selectedAnswers[i]] : "-", correct ? "မှန်" : "မှား"]);
-        });
+        questions.forEach((q, i) => { if(answers[i] === q.ans) score += 5; });
+        
+        const data = {
+            name: document.getElementById('user-name').value,
+            sector: document.getElementById('user-job').value,
+            score: score
+        };
 
-        document.body.innerHTML = `
-            <div style="padding:20px; text-align:center; font-family:sans-serif;">
-                <h2>Result: ${score} / ${questions.length*5}</h2>
-                <button onclick="downloadPDF('${score}', ${JSON.stringify(summary).replace(/"/g, '&quot;')})" style="padding:15px; background:#28a745; color:white; border:none; border-radius:10px; width:100%; margin-bottom:10px;">DOWNLOAD PDF</button>
-                <button onclick="location.reload()" style="padding:15px; background:#00b4db; color:white; border:none; border-radius:10px; width:100%;">RESTART</button>
-            </div>`;
+        await fetch(apiURL, { method: "POST", body: JSON.stringify(data) });
+        alert("စာမေးပွဲအောင်မြင်စွာ ဖြေဆိုပြီးပါပြီ။");
+        location.reload();
     }
 
-    window.downloadPDF = function(score, data) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        doc.text("UBT Exam Result", 14, 20);
-        doc.text(`Name: ${document.getElementById('display-name').innerText} | Score: ${score}`, 14, 30);
-        doc.autoTable({ startY: 40, head: [['Yes.', 'Correct Ans', 'Your Ans', 'Status']], body: data });
-        doc.save("Result.pdf");
-    };
+    async function viewResults() {
+        const name = prompt("ရလဒ်ကြည့်ရန် နာမည်ရိုက်ပါ:");
+        if(name) {
+            const res = await fetch(`${apiURL}?viewResult=true&name=${name}`);
+            const data = await res.json();
+            if(data.length > 0) alert(`${name} ၏ နောက်ဆုံးရမှတ်မှာ ${data[data.length-1][3]} ဖြစ်ပါသည်။ Status: ${data[data.length-1][4]}`);
+            else alert("ဒေတာမရှိပါ။");
+        }
+    }
 </script>
 </body>
 </html>
