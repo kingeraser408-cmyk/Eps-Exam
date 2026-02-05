@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>UBT & Colour Blind Test Certificate System</title>
+    <title>UBT & Colour Blind Randomized System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root { --primary: #00b4db; --dark: #12192c; --white: #ffffff; --danger: #ff0055; --success: #2ecc71; --gold: #d4af37; }
@@ -30,7 +30,6 @@
         .option.active { border: 2px solid var(--primary); background: #e1f5fe; }
         .opt-num { width: 30px; height: 30px; border: 1px solid #333; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-right: 15px; flex-shrink: 0; color: #333; }
 
-        /* Result & Review Section */
         .result-container { background: white; border-radius: 15px; padding: 25px; width: 100%; max-width: 500px; text-align: center; color: #333; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
         .status-badge { font-size: 48px; font-weight: bold; margin-bottom: 10px; }
         .review-scroll { max-height: 250px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 10px; text-align: left; margin: 15px 0; border: 1px solid #eee; }
@@ -38,7 +37,6 @@
         .correct-ans { color: var(--success); font-weight: bold; }
         .wrong-ans { color: var(--danger); font-weight: bold; }
 
-        /* Floating Palette */
         .palette-toggle { position: fixed; right: 20px; bottom: 25px; background: #1a233a; color: white; padding: 15px 20px; cursor: pointer; border-radius: 50px; z-index: 1001; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid var(--primary); font-weight: bold; }
         .side-menu { position: fixed; right: -300px; top: 0; width: 280px; height: 100vh; background: white; box-shadow: -5px 0 15px rgba(0,0,0,0.2); transition: 0.3s; z-index: 1002; padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .side-menu.open { right: 0; }
@@ -47,7 +45,6 @@
         .num-btn.done { background: var(--success); color: white; }
         .num-btn.current { background: var(--primary); color: white; border: 2px solid #008ba3; }
 
-        /* Color Blind UI */
         #cb-page { background: var(--dark); }
         .cb-img { width: 250px; height: 250px; border-radius: 50%; border: 5px solid white; margin: 20px 0; display: block; margin-left: auto; margin-right: auto; }
     </style>
@@ -56,7 +53,7 @@
 
 <div id="login-page" class="page active-page">
     <div class="card">
-        <div class="header">UBT & Colour Blind Test EXAM LOGIN</div>
+        <div class="header">UBT & Colour Blind Test LOGIN</div>
         <center>
             <input type="text" id="user-name" placeholder="အမည်ရိုက်ထည့်ပါ">
             <select id="user-job">
@@ -91,10 +88,8 @@
 
     <div class="palette-toggle" onclick="toggleMenu()">QUESTIONS ☰</div>
     <div id="side-menu" class="side-menu">
-        <h3 style="margin-top:0; font-size:18px;">Reading (읽기)</h3>
-        <div id="reading-grid" class="grid"></div>
-        <h3 style="font-size:18px;">Listening (듣기)</h3>
-        <div id="listening-grid" class="grid"></div>
+        <h3 style="margin-top:0; font-size:18px;">Exam Questions</h3>
+        <div id="exam-grid" class="grid"></div>
         <button class="btn" style="width:100%; background:var(--danger);" onclick="finishPartOne()">FINISH EXAM</button>
         <button class="btn" style="width:100%; background:#2c3e50; margin-top:10px;" onclick="toggleMenu()">CLOSE</button>
     </div>
@@ -104,7 +99,7 @@
     <div class="card" style="text-align: center;">
         <div class="header">COLOR BLIND TEST</div>
         <div id="cb-q-no" style="margin-top:10px; color:white;">Plate 1 of 5</div>
-        <img id="cb-display-img" class="cb-img" src="cb1.jpg">
+        <img id="cb-display-img" class="cb-img" src="">
         <input type="number" id="cb-input" placeholder="ဂဏန်းရိုက်ပါ">
         <button class="btn" onclick="nextCB()">NEXT PLATE</button>
     </div>
@@ -115,9 +110,7 @@
         <div id="status-badge" class="status-badge"></div>
         <h2 id="final-score" style="margin: 0;">Score: 0</h2>
         <p id="final-stats"></p>
-        
         <div class="review-scroll" id="review-list"></div>
-
         <button id="download-btn" class="btn" style="background:var(--gold); display:none; margin-bottom: 10px;" onclick="generateCertificate()">DOWNLOAD CERTIFICATE (PDF)</button>
         <button class="btn" style="background:#2c3e50;" onclick="location.reload()">TRY AGAIN</button>
     </div>
@@ -125,7 +118,8 @@
 
 <script>
     const apiURL = "https://script.google.com/macros/s/AKfycbyWbXxbzDWVYJVUr0jzVr7JSEIseiTs1VSd5RCo9dDvmoxUZklKqfX8vSeAgNvHBirS9A/exec";
-    let questions = [], current = 0, answers = [], audioLogs = {}, timeLeft = 50 * 60, cbCurrent = 1;
+    let questions = [], current = 0, answers = [], audioLogs = {}, timeLeft = 50 * 60;
+    let cbList = [1, 2, 3, 4, 5], cbIdx = 0;
 
     async function startExam() {
         const name = document.getElementById('user-name').value;
@@ -135,8 +129,15 @@
         document.getElementById('display-name').innerText = name;
         try {
             const res = await fetch(apiURL);
-            questions = await res.json();
+            let rawData = await res.json();
+            
+            // ၁။ မေးခွန်းများကို ကျပန်းရောနှောခြင်း (Shuffle)
+            questions = rawData.sort(() => Math.random() - 0.5);
             answers = new Array(questions.length).fill(null);
+            
+            // ၂။ Color Blind Plates များကို ကျပန်းရောနှောခြင်း
+            cbList = cbList.sort(() => Math.random() - 0.5);
+            
             renderQ();
             startTimer();
         } catch(e) { alert("Data Fetch Error!"); }
@@ -145,12 +146,13 @@
     function renderQ() {
         const q = questions[current];
         document.getElementById('q-no').innerText = `Question ${current + 1}`;
-        document.getElementById('q-text').innerText = q.text || "";
+        // innerHTML သုံးမှ Google Sheet က <u> (Underline) တွေ ပေါ်မှာဖြစ်ပါတယ်
+        document.getElementById('q-text').innerHTML = q.text || "";
         
-        // Column C Audio Logic (Main Question Audio)
         const aBox = document.getElementById('q-audio-box');
         if (q.audio) {
-            let qAudioId = `q_${current}_main`;
+            // Shuffle ဖြစ်နေလို့ Index အစား URL ကို ID အဖြစ် သုံးပြီး အသံမှတ်သားပါတယ်
+            let qAudioId = btoa(q.audio).substring(0, 15);
             let count = audioLogs[qAudioId] || 0;
             aBox.innerHTML = `<button class="audio-btn" onclick="playAudio('${q.audio}', '${qAudioId}')" ${count >= 2 ? 'disabled' : ''}>
                 🔊 ${count >= 2 ? 'LIMIT REACHED' : 'LISTEN (' + count + '/2)'}
@@ -160,7 +162,6 @@
         const img = document.getElementById('q-img');
         if(q.img) { img.src = q.img; img.style.display = "block"; } else { img.style.display = "none"; }
         
-        // Column D, E, F, G Audio Logic (Options Audio)
         const optDiv = document.getElementById('options-container');
         optDiv.innerHTML = "";
         q.options.forEach((opt, i) => {
@@ -168,16 +169,14 @@
             if (opt.toString().match(/\.(jpg|jpeg|png)$/i)) {
                 content = `<img src="${opt}" style="height:70px; border-radius:5px;">`;
             } else if (opt.toString().match(/\.mp3$/i)) {
-                let optAudioId = `q_${current}_opt_${i}`;
-                let count = audioLogs[optAudioId] || 0;
+                let optId = btoa(opt).substring(0, 15);
+                let count = audioLogs[optId] || 0;
                 content = `<button class="audio-btn" style="margin:0; width:auto; font-size:12px; padding:8px 15px;" 
-                            onclick="event.stopPropagation(); playAudio('${opt}', '${optAudioId}')" 
+                            onclick="event.stopPropagation(); playAudio('${opt}', '${optId}')" 
                             ${count >= 2 ? 'disabled' : ''}>
                             🔊 ${count >= 2 ? 'LIMIT' : 'Audio (' + count + '/2)'}
                            </button>`;
-            } else {
-                content = `<span>${opt}</span>`;
-            }
+            } else { content = `<span>${opt}</span>`; }
             
             optDiv.innerHTML += `
                 <div class="option ${answers[current]===i?'active':''}" onclick="setAns(${i})">
@@ -188,14 +187,12 @@
         updatePalette();
     }
 
-    // Combined Play Audio Function for both Question and Options
     function playAudio(url, id) {
         if (!audioLogs[id]) audioLogs[id] = 0;
         if (audioLogs[id] < 2) {
-            let audio = new Audio(url);
-            audio.play();
+            new Audio(url).play();
             audioLogs[id]++;
-            renderQ(); // Refresh UI to update counts and disable buttons
+            renderQ();
         }
     }
 
@@ -205,14 +202,14 @@
     function toggleMenu() { document.getElementById('side-menu').classList.toggle('open'); }
 
     function updatePalette() {
-        const rGrid = document.getElementById('reading-grid'), lGrid = document.getElementById('listening-grid');
-        rGrid.innerHTML = ""; lGrid.innerHTML = "";
+        const grid = document.getElementById('exam-grid');
+        grid.innerHTML = "";
         questions.forEach((_, i) => {
             const btn = document.createElement('div');
             btn.className = `num-btn ${answers[i] !== null ? 'done' : ''} ${i === current ? 'current' : ''}`;
             btn.innerText = i + 1;
             btn.onclick = () => { current = i; renderQ(); if(window.innerWidth < 768) toggleMenu(); };
-            if (i < 20) rGrid.appendChild(btn); else lGrid.appendChild(btn);
+            grid.appendChild(btn);
         });
     }
 
@@ -228,14 +225,19 @@
     function finishPartOne() {
         document.getElementById('exam-page').classList.remove('active-page');
         document.getElementById('cb-page').classList.add('active-page');
+        loadCB();
+    }
+
+    function loadCB() {
+        document.getElementById('cb-q-no').innerText = `Plate ${cbIdx + 1} of 5`;
+        document.getElementById('cb-display-img').src = `cb${cbList[cbIdx]}.jpg`;
+        document.getElementById('cb-input').value = "";
     }
 
     function nextCB() {
-        if(cbCurrent < 5) {
-            cbCurrent++;
-            document.getElementById('cb-q-no').innerText = `Plate ${cbCurrent} of 5`;
-            document.getElementById('cb-display-img').src = `cb${cbCurrent}.jpg`;
-            document.getElementById('cb-input').value = "";
+        if(cbIdx < 4) {
+            cbIdx++;
+            loadCB();
         } else { processResults(); }
     }
 
@@ -244,7 +246,7 @@
         questions.forEach((q, i) => {
             const isCorrect = answers[i] === q.ans;
             if(isCorrect) score += 2.5;
-            reviewHTML += `<div class="review-line">Q${i+1}: <span class="${isCorrect?'correct-ans':'wrong-ans'}">${isCorrect?'✓ Correct':'✗ Wrong (Ans: '+(q.ans+1)+')'}</span></div>`;
+            reviewHTML += `<div class="review-line">Q${i+1}: <span class="${isCorrect?'correct-ans':'wrong-ans'}">${isCorrect?'✓ Correct':'✗ Wrong'}</span></div>`;
         });
 
         document.getElementById('cb-page').classList.remove('active-page');
@@ -255,7 +257,6 @@
         document.getElementById('final-stats').innerText = `Correct: ${score/2.5} / ${questions.length}`;
         document.getElementById('review-list').innerHTML = reviewHTML;
 
-        // အောင်မှတ်ကို ၈၀ ပြည့်မှ Pass လို့သတ်မှတ်ခြင်း (စိတ်ကြိုက်ပြင်နိုင်ပါသည်)
         if(score >= 95) {
             badge.innerText = "PASS"; badge.style.color = "var(--success)";
             document.getElementById('download-btn').style.display = "block";
@@ -312,4 +313,4 @@
     }
 </script>
 </body>
-</html>
+            </html>
